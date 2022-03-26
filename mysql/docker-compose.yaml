@@ -1,0 +1,13 @@
+version: '3.2'
+services:
+  mysql:
+    restart: unless-stopped
+    image: mysql:latest
+    container_name: mysql
+    volumes:
+      - ./datadir:/var/lib/mysql
+      - ./conf/docker.cnf:/etc/mysql/conf.d/docker.cnf
+    environment:
+      - "MYSQL_ROOT_PASSWORD=123456mysql"
+    ports:
+      - 3306:3306

@@ -1,0 +1,31 @@
+version: '3'
+services:
+  emqx:
+    image: emqx/emqx:4.2.4
+    hostname: emqx
+    container_name: emqx
+    restart: unless-stopped
+    ports:
+      - 1883:1883
+      - 8083:8083
+      - 8883:8883
+      - 8084:8084
+      - 18083:18083
+    volumes:
+      - vol-emqx-data:/opt/emqx/data
+      - vol-emqx-etc:/opt/emqx/etc
+      - vol-emqx-log:/opt/emqx/log
+    networks:
+      - emqx-bridge
+
+volumes:
+  vol-emqx-data:
+    driver: local
+  vol-emqx-etc:
+    driver: local
+  vol-emqx-log:
+    driver: local
+
+networks:
+  emqx-bridge:
+    driver: bridge

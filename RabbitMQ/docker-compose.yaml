@@ -1,0 +1,21 @@
+version: '3'
+services:
+  rabbitmq:
+    image: rabbitmq:3.8.9-management
+    container_name: rabbitmq
+    restart: always
+    hostname: myRabbitmq
+    logging:
+      driver: json-file
+      options:
+        tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}"
+    ports:
+      - 15672:15672 #
+      - 15674:15674
+      - 15670:15670 # stomp demo
+      - 5672:5672
+    volumes:
+      - ./data:/var/lib/rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin

@@ -1,0 +1,16 @@
+version: '3'
+services:
+  redis:
+    image: redis:5.0.10
+    container_name: redis
+    restart: always
+    hostname: redis
+    ports:
+      - 6379:6379
+    volumes:
+      - data:/data
+    command: redis-server --requirepass "yuwell002223" --appendonly yes
+
+volumes:
+  data:
+    driver: local

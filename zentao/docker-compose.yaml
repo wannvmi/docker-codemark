@@ -1,0 +1,22 @@
+version: '3.7'
+services:
+  zentao-server:
+    image: idoop/zentao:latest
+    hostname: zentao-server
+    container_name: zentao-server
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}"
+    ports:
+      - 8034:80
+      - 13306:3306
+    environment:
+      - ADMINER_USER="root"
+      - ADMINER_PASSWD="Yuwell002223"
+      - BIND_ADDRESS="false"
+    extra_hosts:
+      - "smtp.exmail.qq.com:163.177.90.125"
+    volumes:
+      - './data/zbox/:/opt/zbox/'
