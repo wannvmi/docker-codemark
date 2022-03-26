@@ -1,0 +1,169 @@
+version: '3.7'
+
+services:
+
+  # The 'setup' service runs a one-off script which initializes the
+  # 'logstash_internal' and 'kibana_system' users inside Elasticsearch with the
+  # values of the passwords defined in the '.env' file.
+  #
+  # This task is only performed during the *initial* startup of the stack. On all
+  # subsequent runs, the service simply returns immediately, without performing
+  # any modification to existing users.
+  setup:
+    build:
+      context: setup/
+      args:
+        ELASTIC_VERSION: ${ELASTIC_VERSION}
+    init: true
+    volumes:
+      - setup:/state:Z
+      # (!) CA certificate. Generate using instructions from tls/README.md
+      - ./tls/kibana/elasticsearch-ca.pem:/elasticsearch-ca.pem:ro,z
+    environment:
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-}
+      LOGSTASH_INTERNAL_PASSWORD: ${LOGSTASH_INTERNAL_PASSWORD:-}
+      KIBANA_SYSTEM_PASSWORD: ${KIBANA_SYSTEM_PASSWORD:-}
+    networks:
+      - elk
+
+  elasticsearch:
+    container_name: elasticsearch
+    hostname: elasticsearch
+    restart: unless-stopped
+    build:
+      context: elasticsearch/
+      args:
+        ELASTIC_VERSION: ${ELASTIC_VERSION}
+    volumes:
+      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro,z
+      - elasticsearch:/usr/share/elasticsearch/data:z
+      # (!) TLS certificates. Generate using instructions from tls/README.md.
+      - ./tls/elasticsearch/elasticsearch.p12:/usr/share/elasticsearch/config/elasticsearch.p12:ro,z
+      - ./tls/elasticsearch/http.p12:/usr/share/elasticsearch/config/http.p12:ro,z
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      ES_JAVA_OPTS: -Xmx4g -Xms4g
+      # Bootstrap password.
+      # Used to initialize the keystore during the initial startup of
+      # Elasticsearch. Ignored on subsequent runs.
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-}
+      # Use single node discovery in order to disable production mode and avoid bootstrap checks.
+      # see: https://www.elastic.co/guide/en/elasticsearch/reference/current/bootstrap-checks.html
+      # discovery.type: single-node
+      node.name: elasticsearch
+      discovery.seed_hosts: elasticsearch02
+      cluster.initial_master_nodes: elasticsearch,elasticsearch02
+    networks:
+      - elk
+
+  elasticsearch02:
+    container_name: elasticsearch02
+    hostname: elasticsearch02
+    restart: unless-stopped
+    build:
+      context: elasticsearch/
+      args:
+        ELASTIC_VERSION: ${ELASTIC_VERSION}
+    volumes:
+      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro,z
+      - elasticsearch02:/usr/share/elasticsearch/data:z
+      # (!) TLS certificates. Generate using instructions from tls/README.md.
+      - ./tls/elasticsearch/elasticsearch.p12:/usr/share/elasticsearch/config/elasticsearch.p12:ro,z
+      - ./tls/elasticsearch/http.p12:/usr/share/elasticsearch/config/http.p12:ro,z
+    # ports:
+    #   - "9200:9200"
+    #   - "9300:9300"
+    environment:
+      ES_JAVA_OPTS: -Xmx4g -Xms4g
+      # Bootstrap password.
+      # Used to initialize the keystore during the initial startup of
+      # Elasticsearch. Ignored on subsequent runs.
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-}
+      # Use single node discovery in order to disable production mode and avoid bootstrap checks.
+      # see: https://www.elastic.co/guide/en/elasticsearch/reference/current/bootstrap-checks.html
+      # discovery.type: single-node
+      node.name: elasticsearch02
+      discovery.seed_hosts: elasticsearch
+      cluster.initial_master_nodes: elasticsearch,elasticsearch02
+    networks:
+      - elk
+
+  logstash:
+    container_name: logstash
+    hostname: logstash
+    restart: unless-stopped
+    build:
+      context: logstash/
+      args:
+        ELASTIC_VERSION: ${ELASTIC_VERSION}
+    volumes:
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro,Z
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro,Z
+      # (!) CA certificate. Generate using instructions from tls/README.md
+      # - ./tls/kibana/elasticsearch-ca.pem:/usr/share/logstash/config/elasticsearch-ca.pem:ro,z
+    ports:
+      - "5044:5044"
+      - "5000:5000/tcp"
+      - "5000:5000/udp"
+      - "9600:9600"
+      - "8085:8085"
+    environment:
+      LS_JAVA_OPTS: "-Xmx2g -Xms2g"
+      LOGSTASH_INTERNAL_PASSWORD: ${LOGSTASH_INTERNAL_PASSWORD:-}
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+      - rabbitmq
+
+  kibana:
+    container_name: kibana
+    hostname: kibana
+    restart: unless-stopped
+    build:
+      context: kibana/
+      args:
+        ELASTIC_VERSION: ${ELASTIC_VERSION}
+    volumes:
+      - ./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro,Z
+      # (!) CA certificate. Generate using instructions from tls/README.md.
+      # - ./tls/kibana/elasticsearch-ca.pem:/usr/share/kibana/config/elasticsearch-ca.pem:ro,z
+    ports:
+      - "5601:5601"
+    environment:
+      KIBANA_SYSTEM_PASSWORD: ${KIBANA_SYSTEM_PASSWORD:-}
+      I18N_LOCALE: zh-CN
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+
+  rabbitmq:
+    container_name: rabbitmq
+    hostname: rabbitmq
+    restart: unless-stopped
+    image: rabbitmq:3.9.13-management
+    ports:
+      - 15672:15672 #
+      - 15674:15674
+      - 15670:15670 # stomp demo
+      - 5672:5672
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=Yuwell002223
+    networks:
+      - elk
+
+networks:
+  elk:
+    driver: bridge
+
+volumes:
+  setup:
+  elasticsearch:
+  elasticsearch02:
+  rabbitmq:
