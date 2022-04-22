@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+  master:
+    image: tavenli/ubuntu-server:latest
+    restart: unless-stopped
+    volumes:
+      - date01:/etc/rancher/k3s
+      - date01:/usr/local/bin/k3s
+      - date01:/var/lib/rancher/k3s
+    command: tail -F anything
+    networks:
+      - k3s
+
+  node1:
+    image: tavenli/ubuntu-server:latest
+    restart: unless-stopped
+    volumes:
+      - date02:/etc/rancher/k3s
+      - date02:/usr/local/bin/k3s
+      - date02:/var/lib/rancher/k3s
+    command: tail -F anything
+    networks:
+      - k3s
+
+  node2:
+    image: tavenli/ubuntu-server:latest
+    restart: unless-stopped
+    volumes:
+      - date03:/etc/rancher/k3s
+      - date03:/usr/local/bin/k3s
+      - date03:/var/lib/rancher/k3s
+    command: tail -F anything
+    networks:
+      - k3s
+
+
+networks:
+  k3s:
+    driver: bridge
+
+volumes:
+  date01:
+  date02:
+  date03:
