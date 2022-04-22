@@ -1,0 +1,11 @@
+version: '3.7'
+services:
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.1.3
+    restart: unless-stopped
+    volumes:
+      - './filebeat.docker.yml:/usr/share/filebeat/filebeat.yml:ro'
+      - '/var/lib/docker/containers:/var/lib/docker/containers:ro'
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+    user: root
+    command: filebeat -e --strict.perms=false
