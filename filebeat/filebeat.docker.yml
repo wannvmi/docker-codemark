@@ -13,11 +13,3 @@ processors:
 
 output.logstash:
   hosts: ["192.168.100.182:5044"]
-output.elasticsearch:
-  hosts: 'http://192.168.100.182:9200'
-  username: 'elastic'
-  password: 'Yuwell002223'
-  indices:
-    - index: "filebeat-%{[agent.version]}-%{+yyyy.MM.dd}"
-setup.kibana:
-  host: 'http://192.168.100.182:5601'
