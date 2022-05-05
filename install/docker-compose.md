@@ -11,3 +11,6 @@ cd /usr/libexec/docker/cli-plugins
 
 chmod +x docker-compose
 ```
+
+
+curl -SL https://github.91chi.fun/https://github.com/docker/compose/releases/download/v2.4.1/docker-compose-linux-x86_64 -o  /usr/libexec/docker/cli-plugins/docker-compose
