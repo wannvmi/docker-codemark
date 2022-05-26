@@ -1,11 +1,13 @@
 # docker
+
 doc
 
 https://docs.docker.com/engine/install/ubuntu/#os-requirements
 
+# 解决 docker 日志文件过大的问题
 
-# 解决docker 日志文件过大的问题
-## 修改daemon.json
+## 修改 daemon.json
+
 ```bash
 $ nano /etc/docker/daemon.json
 {
@@ -20,11 +22,13 @@ $ systemctl daemon-reload
 # 重启docker守护进程
 $ systemctl restart docker
 ```
+
 ## 163 网易云镜像 配置
+
 ```
 /etc/docker/daemon.json
 {
-  "registry-mirrors": ["http://hub-mirror.c.163.com"],
+  "registry-mirrors": ["https://hub-mirror.c.163.com"],
   "log-driver": "json-file",
   "log-opts": {
     "max-size": "50m",
@@ -32,7 +36,9 @@ $ systemctl restart docker
   }
 }
 ```
+
 ## 已有日志清理
+
 ```bash
 $ sudo du -d1 -h /var/lib/docker/containers | sort -h
 # 对已有日志排序

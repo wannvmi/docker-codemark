@@ -1,0 +1,17 @@
+version: '3.2'
+services:
+  clickhouse:
+    restart: unless-stopped
+    image: clickhouse/clickhouse-server:22
+    container_name: clickhouse
+    volumes:
+      - ./data:/var/lib/clickhouse
+      - ./log:/var/log/clickhouse-server
+    ports:
+      - "19000:9000"
+      - "8123:8123"
+    environment:
+      - TZ=Asia/Shanghai
+      - CLICKHOUSE_DB=jetlinks
+      - CLICKHOUSE_USER=yuwelldatabase
+      - CLICKHOUSE_PASSWORD=yuwelldatabase
